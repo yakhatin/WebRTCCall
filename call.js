@@ -22,7 +22,7 @@ function login() {
     localStorage.setItem("pwd", this.passwordText.val());
 
     socket = new JsSIP.WebSocketInterface("wss://YOUR_SERVER:PORT/ws");
-    _ua = new JsSIP.UA(
+     _ua = new JsSIP.UA(
         {
             uri: "sip:" + this.loginText.val() + "@YOUR_SERVER",
             password: this.passwordText.val(),
@@ -50,6 +50,33 @@ function login() {
         this.passwordText.prop('disabled', true);
 
         $("#callPanel").removeClass('d-none');
+		
+		
+		// Это нужно для входящего звонка, пока не используем
+		this._ua.on('newRTCSession', (data) => {			
+			if (data.originator === 'remote') {
+				playSound("ringing.ogg", true);
+				
+				setTimeout(() => {
+					let acceptedCall = confirm('Звонок от: ' + data?.request?.from?.display_name || 'Не определен');
+					
+					var callOptions = {
+					  mediaConstraints: {
+						audio: true, // only audio calls
+						video: false
+					  }
+					};
+				
+					if (acceptedCall) {
+						data.session.answer(callOptions);
+						stopSound("ringing.ogg", true);
+					} else {
+						data.session.terminate();
+						stopSound("ringing.ogg", true);
+					}
+				}, 500);
+			}
+		});
     });
 
     // астер про нас больше не знает
@@ -106,17 +133,6 @@ function call() {
             offerToReceiveAudio: 1, // Принимаем только аудио
             offerToReceiveVideo: 0
         }
-    });
-
-    // Это нужно для входящего звонка, пока не используем
-    this._ua.on('newRTCSession', (data) => {
-        if (!this._mounted)
-            return;
-
-        if (data.originator === 'local')
-            return;
-
-        // audioPlayer.play('ringing');
     });
 
     // Астер нас соединил с абонентом
