@@ -4,7 +4,7 @@ function loadPage() {
     $("#loginText").val(localStorage.getItem("login"));
     $("#passwordText").val(localStorage.getItem("pwd"));
     $("#callNumberText").val(localStorage.getItem("callNumber"));
-
+ 
     this._soundsControl = document.getElementById("sounds");
 }
 
